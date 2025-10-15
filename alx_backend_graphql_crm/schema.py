@@ -1,14 +1,17 @@
 import graphene
+from crm.schema import CRMQuery, CRMMutation
 
-# 1. Define the primary Query class for the GraphQL endpoint
-class Query(graphene.ObjectType):
-    # Declare a field named 'hello' which returns a String
-    # The 'resolve_hello' method handles the logic for this field
-    hello = graphene.String()
+# The Query class combines all fields from the CRM app (CRMQuery)
+# and the base Graphene types (graphene.ObjectType).
+class Query(CRMQuery, graphene.ObjectType):
+    # This keeps the original 'hello' field defined in Task 0,
+    # ensuring backward compatibility for the checkpoint test.
+    hello = graphene.String(default_value="Hello, GraphQL!")
+    pass
 
-    def resolve_hello(root, info):
-        # Return the required default string
-        return "Hello, GraphQL!"
+# The Mutation class combines all mutation logic from the CRM app (CRMMutation)
+class Mutation(CRMMutation, graphene.ObjectType):
+    pass
 
-# 2. Define the top-level Schema, listing the available queries
-schema = graphene.Schema(query=Query)
+# Define the final schema used by the GraphQLView in urls.py
+schema = graphene.Schema(query=Query, mutation=Mutation)
