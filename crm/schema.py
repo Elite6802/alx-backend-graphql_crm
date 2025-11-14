@@ -60,7 +60,8 @@ class CreateCustomer(graphene.Mutation):
         if phone and not phone.replace("+", "").replace("-", "").isdigit():
             raise Exception("Invalid phone format. Use +1234567890 or 123-456-7890.")
 
-        customer = Customer.objects.create(name=name, email=email, phone=phone)
+        customer = Customer(name=name, email=email, phone=phone)
+        customer.save()
         return CreateCustomer(customer=customer, message="Customer created successfully.")
 
 
@@ -89,11 +90,12 @@ class BulkCreateCustomers(graphene.Mutation):
                 validate_email(entry.email)
                 if Customer.objects.filter(email=entry.email).exists():
                     raise Exception(f"Duplicate email: {entry.email}")
-                customer = Customer.objects.create(
+                customer = Customer(
                     name=entry.name,
                     email=entry.email,
                     phone=entry.phone
                 )
+                customer.save()
                 created.append(customer)
             except Exception as e:
                 errors.append(f"Row {index + 1}: {str(e)}")
@@ -122,11 +124,12 @@ class CreateProduct(graphene.Mutation):
         if input.stock < 0:
             raise Exception("Stock cannot be negative.")
 
-        product = Product.objects.create(
+        product = Product(
             name=input.name,
             price=input.price,
             stock=input.stock
         )
+        product.save()
         return CreateProduct(product=product)
 
 
@@ -164,11 +167,13 @@ class CreateOrder(graphene.Mutation):
             except Product.DoesNotExist:
                 raise Exception(f"Invalid product ID: {pid}")
 
-        order = Order.objects.create(
+        order = Order(
             customer=customer,
             order_date=input.order_date or timezone.now(),
             total_amount=total
         )
+        order.save()  # <-- explicit save()
+
         order.products.set(products)
         return CreateOrder(order=order)
 
