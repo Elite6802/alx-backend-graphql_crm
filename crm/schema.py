@@ -7,6 +7,7 @@ from django.utils import timezone
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 from graphene import relay
 from graphene_django.filter import DjangoFilterConnectionField
+from crm.models import Product
 
 from .models import Customer, Product, Order
 
@@ -24,12 +25,14 @@ class ProductType(DjangoObjectType):
     class Meta:
         model = Product
         fields = ("id", "name", "price", "stock")
+        interfaces = (relay.Node,)
 
 
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
         fields = ("id", "customer", "products", "total_amount", "order_date")
+        interfaces = (relay.Node,)
 
 
 # -----------------------------
@@ -208,9 +211,3 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
-
-
-class Query(graphene.ObjectType):
-    all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
-    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
-    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
