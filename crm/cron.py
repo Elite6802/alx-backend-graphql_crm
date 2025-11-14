@@ -1,13 +1,15 @@
 import os
 import datetime
 import requests
+from gql.transport.requests import RequestsHTTPTransport
+from gql import gql, Client
 
 # Path for log file (Windows/Unix safe)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 log_dir = os.path.join(BASE_DIR, "logs")
 os.makedirs(log_dir, exist_ok=True)
 
-log_file = os.path.join(log_dir, "crm_heartbeat_log.txt")
+log_file = os.path.join(log_dir, "/tmp/crm_heartbeat_log.txt")
 
 
 def log_crm_heartbeat():
