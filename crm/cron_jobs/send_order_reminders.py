@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+import os
+import datetime
 from gql import gql, Client
 from gql.transport.requests import RequestsHTTPTransport
-import datetime
-import os
 
 # -----------------------------
-# Logging setup
+# Logging setup (Windows + Unix safe)
 # -----------------------------
-log_file = "crm/cron_jobs/logs/order_reminders_log.txt"
-os.makedirs(os.path.dirname(log_file), exist_ok=True)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+log_dir = os.path.join(BASE_DIR, "logs")
+os.makedirs(log_dir, exist_ok=True)
+
+log_file = os.path.join(log_dir, "order_reminders_crontab.txt")
 
 # -----------------------------
 # GraphQL Client setup
@@ -21,7 +24,7 @@ transport = RequestsHTTPTransport(
 client = Client(transport=transport, fetch_schema_from_transport=True)
 
 # -----------------------------
-# Query orders
+# GraphQL Query
 # -----------------------------
 query = gql("""
 query {
@@ -35,7 +38,6 @@ query {
 }
 """)
 
-# Get datetime for 7 days ago
 seven_days_ago = (datetime.datetime.now() - datetime.timedelta(days=7)).isoformat()
 
 try:
@@ -45,7 +47,6 @@ try:
     # Filter orders from the last 7 days
     recent_orders = [o for o in orders if o["orderDate"] >= seven_days_ago]
 
-    # Log to file
     with open(log_file, "a") as f:
         for order in recent_orders:
             f.write(f"{datetime.datetime.now()} - Order ID {order['id']}, Customer {order['customer']['email']}\n")
