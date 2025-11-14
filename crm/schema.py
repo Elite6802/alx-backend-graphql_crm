@@ -4,6 +4,9 @@ from django.db import transaction
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from .filters import CustomerFilter, ProductFilter, OrderFilter
+from graphene import relay
+from graphene_django.filter import DjangoFilterConnectionField
 
 from .models import Customer, Product, Order
 
@@ -14,6 +17,7 @@ class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
         fields = ("id", "name", "email", "phone")
+        interfaces = (relay.Node,)
 
 
 class ProductType(DjangoObjectType):
@@ -204,3 +208,9 @@ class Mutation(graphene.ObjectType):
     bulk_create_customers = BulkCreateCustomers.Field()
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
+
+
+class Query(graphene.ObjectType):
+    all_customers = DjangoFilterConnectionField(CustomerType, filterset_class=CustomerFilter)
+    all_products = DjangoFilterConnectionField(ProductType, filterset_class=ProductFilter)
+    all_orders = DjangoFilterConnectionField(OrderType, filterset_class=OrderFilter)
