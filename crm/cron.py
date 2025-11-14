@@ -37,3 +37,39 @@ def log_crm_heartbeat():
     except Exception as e:
         with open(log_file, "a") as f:
             f.write(f"{timestamp} Error pinging GraphQL endpoint: {e}\n")
+
+def update_low_stock():
+    log_file = "/tmp/low_stock_updates_log.txt"
+    os.makedirs(os.path.dirname(log_file), exist_ok=True)
+
+    transport = RequestsHTTPTransport(
+        url="http://127.0.0.1:8000/graphql",
+        verify=False,
+        retries=3,
+    )
+    client = Client(transport=transport, fetch_schema_from_transport=True)
+
+    mutation = gql(
+        """
+        mutation {
+            updateLowStockProducts {
+                updatedProducts {
+                    name
+                    stock
+                }
+                message
+            }
+        }
+        """
+    )
+
+    try:
+        result = client.execute(mutation)
+        timestamp = datetime.now().strftime("%d/%m/%Y-%H:%M:%S")
+        with open(log_file, "a") as f:
+            f.write(f"{timestamp} - {result['updateLowStockProducts']['message']}\n")
+            for product in result["updateLowStockProducts"]["updatedProducts"]:
+                f.write(f"  - {product['name']}: stock={product['stock']}\n")
+    except Exception as e:
+        with open(log_file, "a") as f:
+            f.write(f"{datetime.now().strftime('%d/%m/%Y-%H:%M:%S')} - Error: {str(e)}\n")
